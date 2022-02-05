@@ -1,5 +1,4 @@
-# importing libraries
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, SoupStrainer
 import requests
 
 
@@ -23,17 +22,15 @@ def main(URL):
 	# retrieving product title
 	try:
 		# Outer Tag Object
-		title = soup.find_all("span",
-						class_="src__Text-sc-154pg0p-0 product-name__Name-sc-n8j4w0-0 fcRttM product-info__ProductNameUI-sc-94t9sv-2 hswIUF")
-
+		title = soup.find_all("a", href=True)
 			
 	except AttributeError:
 		title = "NA"
 	for tag in title:
-		print("product Title = ", tag.text.strip())
-
-	# saving the title in the file
-	File.write(f"{title},")
+		if tag['href'].startswith("/produto"):
+			print("product Title = ", tag['href'])
+			# saving the title in the file	
+			File.write(f"https://www.americanas.com.br{tag['href']},")
 
 	# retrieving price
 	try:
@@ -46,9 +43,8 @@ def main(URL):
 		price = "NA"
 	for tag in price:
 		print("product Price = ", tag.text.strip())
-
-	# saving
-	File.write(f"{price},")
+		# saving	
+		File.write(f"{tag.text.strip()},")
 
 	# closing the file
 	File.close()

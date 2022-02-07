@@ -22,37 +22,53 @@ def main(URL):
 	# retrieving product title
 	try:
 		# Outer Tag Object
-		title = soup.find_all("a", href=True)
-			
-	except AttributeError:
-		title = "NA"
-	for tag in title:
-		if tag['href'].startswith("/produto"):
-			print("product Title = ", tag['href'])
-			# saving the title in the file	
-			File.write(f"https://www.americanas.com.br{tag['href']},")
-
-	# retrieving price
-	try:
-		price = soup.find_all(
-			"span", attrs={'class': 'src__Text-sc-154pg0p-0 price__PromotionalPrice-sc-1i4tohf-1 hjtXiU'})
+		url = soup.find_all("a", href=True)
 		
-		# we are omitting unnecessary spaces
-		# and commas form our string
 	except AttributeError:
-		price = "NA"
-	for tag in price:
-		print("product Price = ", tag.text.strip())
-		# saving	
-		File.write(f"{tag.text.strip()},")
+		url = "NA"
 
-	# closing the file
+	for i in url:
+		if i['href'].startswith("/produto"):
+			print("url = ", i['href'])
+			# saving the title in the file	
+			File.write(f"https://www.americanas.com.br{i['href']};")
+
+			nextpage = requests.get(f"https://www.americanas.com.br{i['href']}", headers=HEADERS)
+			nextsoup = BeautifulSoup(nextpage.content, 'lxml')
+
+			try:
+				gtin = nextsoup.find_all("td", class_='src__Text-sc-70o4ee-7 iHQLKS')[3]
+				for tag in gtin:
+					print("gtin = ", tag.text)
+					File.write(f"{tag.text.strip()};")	
+			except Exception:
+				File.write("NA;")
+
+			try:
+				descricao = nextsoup.find("div", class_='src__Description-sc-13f3i2j-2 bqnMru')
+				print("descricao = ", descricao.text)
+				File.write(f"{descricao.text};")
+			except Exception:
+				File.write("NA;")
+
+			try:
+				price = nextsoup.find_all(
+					"div", class_='src__BestPrice-sc-1jvw02c-5 cBWOIB priceSales')
+				for tag in price:
+					print("preco = ", tag.text)
+					File.write(f"{tag.text};")
+			except Exception:
+				File.write("NA;")
+			
+			try:
+				foto = nextsoup.find_all("img", src=True)
+				print("foto = ", foto[1]['src'])
+				File.write(f"{foto[1]['src']};")
+			except Exception:
+				File.write("NA;")
+
 	File.close()
 
 if __name__ == '__main__':
-# opening our url file to access URLs
-	file = open("url.txt", "r")
-
-	# iterating over the urls
-	for links in file.readlines():
-		main(links)
+	file = "https://www.americanas.com.br/categoria/tv-e-home-theater/acessorios-para-tv-e-video?viewMode=list&limit=10&offset=10"
+	main(file)
